@@ -2,6 +2,7 @@ from functools import partial
 
 import torch
 import transformers
+from transformers import LlamaForCausalLM, LlamaTokenizer
 
 from techniques.SelfDebias.modeling import GPT2Wrapper
 from techniques.SelfDebias.modeling import MaskedLMWrapper
@@ -25,6 +26,16 @@ class RobertaModel:
 class GPT2Model:
     def __new__(self, model_name_or_path):
         return transformers.GPT2Model.from_pretrained(model_name_or_path)
+
+
+class LlamaModel:
+    def __new__(self, model_name_or_path):
+        return LlamaForCausalLM.from_pretrained(model_name_or_path)
+
+
+class LlamaTokenizerWrapper:
+    def __new__(self, model_name_or_path):
+        return LlamaTokenizer.from_pretrained(model_name_or_path)
 
 
 class BertForMaskedLM:

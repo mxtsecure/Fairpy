@@ -29,6 +29,7 @@ from transformers import (
     BertLMHeadModel,
     DistilBertModel,
     RobertaForCausalLM,
+    LlamaForCausalLM, LlamaTokenizer,
     AlbertModel,
     XLMTokenizer, XLMWithLMHeadModel,
     XLNetLMHeadModel, XLNetTokenizer,
@@ -67,6 +68,7 @@ class CausalLMBiasDetection(LMBiasDetection):
         "xlm-mlm-en-2048": (XLMWithLMHeadModel, XLMTokenizer),
         "bert-base-uncased": (BertLMHeadModel, BertTokenizer),
         "roberta-base": (RobertaForCausalLM, RobertaTokenizer),
+        "meta-llama/Meta-Llama-3-8B-Instruct": (LlamaForCausalLM, LlamaTokenizer),
         }
         self.MSK = '[MASK]'
         if('roberta' in model_class):
@@ -87,6 +89,9 @@ class CausalLMBiasDetection(LMBiasDetection):
         elif('transfo' in model_class):
             self.embedding = self.model.crit.out_layers[3].weight.cpu().detach().numpy()
             self.transformer = self.model.transformer
+        elif('llama' in model_class.lower() or isinstance(self.model, LlamaForCausalLM)):
+            self.embedding = self.model.lm_head.weight.cpu().detach().numpy()
+            self.transformer = self.model.model
         elif('bert' not in model_class):
             self.embedding = self.model.lm_head.weight.cpu().detach().numpy()
             self.transformer = self.model.transformer

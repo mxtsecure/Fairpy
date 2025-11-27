@@ -26,6 +26,7 @@ from transformers import (
     BertLMHeadModel,
     DistilBertModel,
     RobertaForCausalLM,
+    LlamaForCausalLM, LlamaTokenizer,
     AlbertModel,
     XLMTokenizer, XLMWithLMHeadModel,
     XLNetLMHeadModel, XLNetTokenizer,
@@ -73,8 +74,9 @@ class CausalLMBiasMitigation(LMBiasMitigation):
         "xlnet-large-cased": (XLNetLMHeadModel, XLNetTokenizer),
         "transfo-xl-wt103": (TransfoXLLMHeadModel, TransfoXLTokenizer),
         "xlm-mlm-en-2048": (XLMWithLMHeadModel, XLMTokenizer),
-        "bert-base-uncased": (BertLMHeadModel, BertTokenizer),        
+        "bert-base-uncased": (BertLMHeadModel, BertTokenizer),
         "roberta-base": (RobertaForCausalLM, RobertaTokenizer),
+        "meta-llama/Meta-Llama-3-8B-Instruct": (LlamaForCausalLM, LlamaTokenizer),
         }
         self.config = ''
         self.retrain_sets = {'wikipedia2.5':"BiasMitigation/data/text/wikipedia-2.5.txt", 'wikipedia10':"BiasMitigation/data/text/wikipedia-10.txt", 
@@ -82,7 +84,10 @@ class CausalLMBiasMitigation(LMBiasMitigation):
                              "wikitext":"BiasMitigation/data/text_corpus/wikitext.txt", "yelp_sm":"BiasMitigation/data/text_corpus/yelp_review_1mb.txt",
                              "yelp_med":"BiasMitigation/data/text_corpus/yelp_review_5mb.txt", "yelp_lg":"BiasMitigation/data/text_corpus/yelp_review_10mb.txt"}
         self.model, self.tokenizer = self.load_model(model_class, model_path, use_pretrained)
-        if('bert' not in model_class):
+        if('llama' in model_class.lower() or isinstance(self.model, LlamaForCausalLM)):
+            self.embedding = self.model.lm_head.weight.cpu().detach().numpy()
+            self.transformer = self.model.model
+        elif('bert' not in model_class):
             self.embedding = self.model.lm_head.weight.cpu().detach().numpy()
             self.transformer = self.model.transformer
         else:

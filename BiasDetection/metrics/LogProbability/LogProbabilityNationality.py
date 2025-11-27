@@ -7,16 +7,16 @@ from BiasDetection.utils.bias_utils import collate, how_many_tokens, find_mask_t
 import pandas as pd
 #from model import Aligned_BERT
 from tqdm import tqdm
-from pattern3.en import pluralize, singularize
+import inflect
 from copy import copy
-import numpy as np
 from sklearn.decomposition import PCA
-import pandas as pd
 import regex as re
 import seaborn as sns
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import random
+
+_inflector = inflect.engine()
 
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.preprocessing import StandardScaler
@@ -83,7 +83,8 @@ class LogProbabilityNationality(LogProbability):
                 sentence = template.replace('[TTT]', target_mask).replace('[AAA]', attr)
                 prior_sentence = template.replace('[TTT]', target_mask).replace('[AAA]', attribute_mask)
             else:
-                sentence = template.replace('[TTT]', target_mask).replace('[AAAs]', pluralize(attr))
+                plural_attr = _inflector.plural(attr) or attr
+                sentence = template.replace('[TTT]', target_mask).replace('[AAAs]', plural_attr)
                 prior_sentence = template.replace('[TTT]', target_mask).replace('[AAAs]', attribute_mask)
             
             input_ids = tokenizer(sentence, return_tensors='pt').to(device)
